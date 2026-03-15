@@ -1,40 +1,44 @@
 # AutoTRandHD
 
-Hybrid OCR and transcription pipeline for seventeenth-century Spanish printed sources using a weighted CNN-RNN recognizer, lexicon-constrained decoding, and late-stage LLM correction.
+Historical OCR and transcription system for seventeenth-century Spanish printed sources.
 
-## Project Scope
+This repository is documentation-first. The Markdown files listed below are the canonical specification for future implementation.
 
-This repository contains the technical proposal and implementation plan for a HumanAI / RenAIssance GSoC project focused on historical text recognition from early modern Spanish print.
+## Canonical Documents
 
-Primary goals:
+- [README.md](README.md): repository entry point and document index
+- [CONTRIBUTING.md](CONTRIBUTING.md): development workflow, review policy, and contribution rules
+- [docs/PROJECT_SCOPE.md](docs/PROJECT_SCOPE.md): scope, constraints, goals, non-goals, acceptance criteria
+- [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md): data flow, module boundaries, interfaces, and invariants
+- [docs/DATASET_AND_EVALUATION.md](docs/DATASET_AND_EVALUATION.md): dataset assumptions, preprocessing contract, metrics, and benchmark policy
+- [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md): phased delivery plan and 12-week execution schedule
 
-- detect and isolate main text from scanned historical pages
-- train a domain-adapted recognizer for line-level transcription
-- improve rare glyph recognition with weighted learning
-- reduce decoder hallucinations using a Renaissance Spanish lexicon
-- integrate an LLM as a constrained post-correction stage
+## Project Definition
 
-## Planned Features
+AutoTRandHD targets OCR for early modern Spanish print where generic OCR fails due to:
 
-- PDF-to-image conversion and dataset manifest generation
-- main-text extraction with marginalia suppression
-- line segmentation for OCR training and inference
-- CRNN recognizer with CTC training
-- weighted loss for rare glyphs, ligatures, and diacritics
-- constrained beam search decoding
-- optional Gemini-based post-correction for low-confidence spans
-- evaluation with CER, WER, exact line match, and rare-character recall
+- degraded scans
+- non-standard glyphs and ligatures
+- historical spelling variation
+- decorative layouts and marginal noise
 
-## Repository Layout
+The planned system combines:
 
-```text
-.
-├── README.md
-└── docs/
-    └── GSoC_2026_HumanAI_Proposal.md
-```
+- deterministic PDF and image preprocessing
+- main-text extraction and line segmentation
+- weighted CNN-RNN text recognition with CTC training
+- lexicon-constrained beam search decoding
+- selective late-stage LLM correction for low-confidence outputs
 
-Planned implementation layout:
+## Repository Status
+
+Current state:
+
+- documentation baseline defined
+- implementation not yet started
+- repository structure prepared conceptually, not materially
+
+Planned source tree:
 
 ```text
 src/
@@ -49,17 +53,15 @@ configs/
 notebooks/
 ```
 
-## Installation
+## Development Priorities
 
-Planned Python environment:
+1. Build deterministic data ingestion and segmentation.
+2. Establish CRNN baseline with reproducible CER/WER reporting.
+3. Add weighted training for rare glyphs and diacritics.
+4. Add constrained beam search with historical lexicon support.
+5. Integrate confidence-gated LLM correction.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Expected core dependencies:
+## Technology Baseline
 
 - Python 3.10+
 - PyTorch
@@ -69,29 +71,16 @@ Expected core dependencies:
 - pandas
 - jiwer
 - PyMuPDF or pdf2image
+- optional KenLM or equivalent for decoder language priors
 
-## Intended Workflow
+## Execution Policy
 
-1. Convert source PDFs into page images.
-2. Extract main text blocks and segment pages into line crops.
-3. Train a CRNN recognizer on aligned line/transcription pairs.
-4. Decode with beam search constrained by a Renaissance Spanish lexicon.
-5. Apply LLM correction only on uncertain outputs.
-6. Evaluate against held-out transcriptions.
-
-## Usage
-
-This repository currently stores the proposal and project plan. Code modules listed above are planned deliverables for the GSoC implementation period.
-
-## Contribution Guidelines
-
-- keep preprocessing and decoding modules deterministic
-- document dataset assumptions and transcription policy
-- add tests for all non-trivial pipeline stages
-- report metrics with source-level breakdowns
+- The documents in this repository are the primary source of truth.
+- Code, configs, experiments, and tests must conform to the architecture and acceptance criteria defined in `docs/`.
+- Any material design change must update the relevant Markdown document before or with the implementation change.
 
 ## License
 
-Code: MIT License.
+Code: MIT, to be added when source code is introduced.
 
-Datasets and source scans remain subject to their original licenses and usage restrictions.
+Dataset usage remains subject to the original source licenses and access restrictions.
