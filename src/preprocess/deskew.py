@@ -10,8 +10,9 @@ Algorithm
 2. Compute the minimum area bounding rectangle of all foreground pixels.
 3. If the detected angle is within *max_angle_deg*, rotate the image.
 
-The rotation is applied with a white (255) background fill to preserve
-page dimensions.
+The rotation is applied around the image center with a white (255) background
+fill, expanding the canvas as needed to preserve the full page content. As a
+result, the output image dimensions may differ from the input.
 
 Typical usage::
 
