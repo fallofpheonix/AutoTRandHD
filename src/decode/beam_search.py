@@ -143,8 +143,15 @@ def beam_decode(
                         last_token=c,
                         ended_blank=False,
                     )
-                    # Optional lexicon rescoring at presumed word boundary.
-                    if lexicon is not None and lm_alpha > 0:
+                    # Optional lexicon rescoring at a newly created word boundary.
+                    # Only apply when we just transitioned from a non-space to a space,
+                    # to avoid scoring the same boundary multiple times on consecutive spaces.
+                    if (
+                        lexicon is not None
+                        and lm_alpha > 0
+                        and vocab_list[c] == " "
+                        and (not beam.token_indices or vocab_list[beam.token_indices[-1]] != " ")
+                    ):
                         extended.score += _lexicon_score(
                             new_tokens, vocab_list, lexicon, lm_alpha, lm_beta
                         )
