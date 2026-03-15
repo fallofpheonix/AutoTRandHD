@@ -80,9 +80,7 @@ class CTCLossWrapper(nn.Module):
             (B,), T, dtype=torch.long, device=log_probs.device
         )
 
-        # Flatten padded targets to a 1-D tensor if necessary.
-        if targets.dim() == 2:
-            # (B, S) → (B * S,); CTCLoss will use target_lengths to slice.
-            targets = targets.reshape(-1)
-
+        # Pass targets directly; nn.CTCLoss supports both 1-D concatenated
+        # targets of length sum(target_lengths) and 2-D padded targets of
+        # shape (B, S), using target_lengths to determine the valid tokens.
         return self.ctc(log_probs, targets, input_lengths, target_lengths)
