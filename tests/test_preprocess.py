@@ -1,44 +1,11 @@
-import numpy as np
-
-from src.preprocess import deskew
-
-
-def test_large_angle_skipped(monkeypatch):
-    """
-    Ensure that when the estimated skew angle is larger than ``max_angle_deg``,
-    ``deskew_image`` skips correction and returns an angle of 0.0.
-
-    This test monkeypatches ``_estimate_skew`` to return a fixed large angle
-    to avoid flakiness from relying on the real skew estimation logic.
-    """
-
-    # Dummy image; contents are irrelevant because _estimate_skew is patched.
-    img = np.zeros((32, 32), dtype=np.uint8)
-
-    # Always report a large skew angle to trigger the "skip" branch.
-    def fake_estimate_skew(_img):
-        return 10.0  # degrees, well above the threshold used below
-
-    # Patch the internal skew estimator in the deskew module.
-    monkeypatch.setattr(deskew, "_estimate_skew", fake_estimate_skew)
-
-    # Use a very small max_angle_deg so that the large estimated angle
-    # should cause the deskewing logic to skip correction.
-    corrected_img, angle = deskew.deskew_image(img, max_angle_deg=0.05)
-
-    # When skipping, the angle should be reported as 0.0, and no rotation
-    # should be applied to the image.
-    assert angle == 0.0
-    # Depending on implementation, this may or may not be the same object;
-    # we at least ensure the image content is unchanged.
-    assert corrected_img.shape == img.shape
-    assert np.array_equal(corrected_img, img)
 """Unit tests for src.preprocess modules."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
+
+from src.preprocess import deskew
 
 
 # ---------------------------------------------------------------------------
@@ -124,12 +91,18 @@ class TestDeskewImage:
         corrected, angle = deskew_image(img)
         assert abs(angle) <= 10.0  # within tolerance
 
-    def test_large_angle_skipped(self):
-        from src.preprocess.deskew import deskew_image
-        img = _make_gray()
-        # Force angle beyond threshold by patching internal fn.
-        corrected, angle = deskew_image(img, max_angle_deg=0.05)
-        assert angle == 0.0  # skipped
+    def test_large_angle_skipped(self, monkeypatch):
+        """Skew correction is skipped when the estimated angle exceeds max_angle_deg."""
+        img = np.zeros((32, 32), dtype=np.uint8)
+
+        def fake_estimate_skew(_img):
+            return 10.0  # degrees, well above threshold
+
+        monkeypatch.setattr(deskew, "_estimate_skew", fake_estimate_skew)
+        corrected, angle = deskew.deskew_image(img, max_angle_deg=0.05)
+        assert angle == 0.0
+        assert corrected.shape == img.shape
+        assert np.array_equal(corrected, img)
 
     def test_output_shape_reasonable(self):
         from src.preprocess.deskew import deskew_image
@@ -169,6 +142,33 @@ class TestExtractTextRegion:
         img = np.full((64, 128), 255, dtype=np.uint8)
         _, bbox = extract_text_region(img)
         assert bbox == (0, 0, 128, 64)
+
+    def test_clustering_excludes_marginal_components(self):
+        """Main-text cluster (large) should exclude small marginal note cluster."""
+        from src.preprocess.text_region import extract_text_region
+
+        # Page: 300 px tall, 400 px wide (all white).
+        img = np.full((300, 400), 255, dtype=np.uint8)
+
+        # Main-text block: dense rows of black pixels in the vertical centre.
+        # Each stripe is 12 px tall (> default min_component_height of 10).
+        for row_y in range(100, 200, 18):
+            img[row_y : row_y + 12, 40:360] = 0  # wide text-like stripes
+
+        # Marginal note: a single small cluster at the very top of the page,
+        # separated from the main block by a large vertical gap.
+        img[5:20, 5:80] = 0  # small isolated blob near top margin
+
+        _, (bx, by, bw, bh) = extract_text_region(img, padding=0)
+
+        # The returned region must contain the main-text block.
+        assert by <= 100
+        assert by + bh >= 196
+
+        # The top margin of the returned bbox must NOT extend all the way
+        # to row 5 (where the marginal note lives); the clustering step
+        # should have discarded that small isolated cluster.
+        assert by > 5
 
 
 # ---------------------------------------------------------------------------

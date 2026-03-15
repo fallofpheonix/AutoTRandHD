@@ -15,9 +15,13 @@ Algorithm (heuristic, deterministic)
 2. Dilate horizontally to merge characters within words.
 3. Find connected components; keep components whose width and height exceed
    minimum thresholds.
-4. Cluster the kept components vertically; select the largest cluster as the
-   main-text block.
-5. Return the bounding box of that cluster, padded slightly.
+4. Cluster the kept components vertically: sort by y-centre; start a new
+   cluster when the gap between consecutive y-centres exceeds
+   ``cluster_gap_ratio × median_component_height``.
+5. Select the largest cluster (by total component area) as the main-text
+   block.  This discards marginal notes, catchwords, and ornaments that form
+   smaller, isolated vertical clusters.
+6. Return the bounding box of that cluster, padded slightly.
 
 Typical usage::
 
@@ -32,7 +36,7 @@ Typical usage::
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -41,12 +45,59 @@ logger = logging.getLogger(__name__)
 
 BBox = Tuple[int, int, int, int]  # (x, y, w, h)
 
+# Each element is a row from cv2.connectedComponentsWithStats.
+_StatRow = np.ndarray  # shape (5,) — LEFT, TOP, WIDTH, HEIGHT, AREA
+
+
+def _cluster_vertically(
+    valid_stats: List[_StatRow],
+    cluster_gap_ratio: float,
+) -> List[List[_StatRow]]:
+    """Group *valid_stats* into vertical clusters.
+
+    Components are sorted by their y-centre.  A new cluster is started
+    whenever the gap between consecutive y-centres exceeds
+    ``cluster_gap_ratio × median_component_height``.
+
+    Parameters
+    ----------
+    valid_stats:
+        List of stat rows (each a length-5 array) for all accepted components.
+    cluster_gap_ratio:
+        Multiplier applied to the median component height to determine the
+        minimum vertical gap that separates two distinct clusters.
+
+    Returns
+    -------
+    List of clusters, each cluster being a list of stat rows.
+    """
+    heights = [int(s[cv2.CC_STAT_HEIGHT]) for s in valid_stats]
+    median_h = float(np.median(heights)) if heights else 1.0
+    gap_threshold = cluster_gap_ratio * median_h
+
+    # Sort by vertical centre of each component.
+    sorted_stats = sorted(
+        valid_stats,
+        key=lambda s: int(s[cv2.CC_STAT_TOP]) + int(s[cv2.CC_STAT_HEIGHT]) / 2.0,
+    )
+
+    clusters: List[List[_StatRow]] = [[sorted_stats[0]]]
+    for prev, curr in zip(sorted_stats, sorted_stats[1:]):
+        prev_cy = int(prev[cv2.CC_STAT_TOP]) + int(prev[cv2.CC_STAT_HEIGHT]) / 2.0
+        curr_cy = int(curr[cv2.CC_STAT_TOP]) + int(curr[cv2.CC_STAT_HEIGHT]) / 2.0
+        if curr_cy - prev_cy > gap_threshold:
+            clusters.append([])
+        clusters[-1].append(curr)
+
+    return clusters
+
 
 def extract_text_region(
     gray: np.ndarray,
     min_component_width: int = 20,
     min_component_height: int = 10,
     padding: int = 5,
+    cluster_gap_ratio: float = 2.0,
 ) -> Tuple[np.ndarray, BBox]:
     """Extract the main-text region from *gray*.
 
@@ -60,6 +111,12 @@ def extract_text_region(
         Minimum pixel height of a connected component to be considered text.
     padding:
         Extra pixels added to each side of the detected bounding box.
+    cluster_gap_ratio:
+        Controls sensitivity of vertical cluster splitting.  A gap larger
+        than ``cluster_gap_ratio × median_component_height`` starts a new
+        cluster.  Increase this value to be more lenient (fewer clusters);
+        decrease it to split marginal annotations into their own cluster more
+        aggressively.  Default ``2.0`` works well for typical book pages.
 
     Returns
     -------
@@ -84,12 +141,12 @@ def extract_text_region(
     dilated = cv2.dilate(thresh, kernel, iterations=1)
 
     # --- find connected components ---
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+    num_labels, _labels, stats, _ = cv2.connectedComponentsWithStats(
         dilated, connectivity=8
     )
 
     # Filter: skip background (label 0); keep components above size thresholds.
-    valid_stats = []
+    valid_stats: List[_StatRow] = []
     for lbl in range(1, num_labels):
         cw = int(stats[lbl, cv2.CC_STAT_WIDTH])
         ch = int(stats[lbl, cv2.CC_STAT_HEIGHT])
@@ -100,14 +157,29 @@ def extract_text_region(
         logger.warning("No text components found; returning full page.")
         return gray, (0, 0, w, h)
 
-    # --- bounding box of all valid components ---
-    xs = [s[cv2.CC_STAT_LEFT] for s in valid_stats]
-    ys = [s[cv2.CC_STAT_TOP] for s in valid_stats]
-    x2s = [s[cv2.CC_STAT_LEFT] + s[cv2.CC_STAT_WIDTH] for s in valid_stats]
-    y2s = [s[cv2.CC_STAT_TOP] + s[cv2.CC_STAT_HEIGHT] for s in valid_stats]
+    # --- vertical clustering: select the largest cluster ---
+    clusters = _cluster_vertically(valid_stats, cluster_gap_ratio)
 
-    x1 = max(0, min(xs) - padding)
-    y1 = max(0, min(ys) - padding)
+    # "Largest" is the cluster with the greatest total component area.
+    best_cluster = max(
+        clusters,
+        key=lambda cl: sum(int(s[cv2.CC_STAT_AREA]) for s in cl),
+    )
+
+    logger.debug(
+        "Clusters found: %d; selected cluster size: %d components",
+        len(clusters),
+        len(best_cluster),
+    )
+
+    # --- bounding box of the selected cluster ---
+    xs  = [int(s[cv2.CC_STAT_LEFT])                            for s in best_cluster]
+    ys  = [int(s[cv2.CC_STAT_TOP])                             for s in best_cluster]
+    x2s = [int(s[cv2.CC_STAT_LEFT]) + int(s[cv2.CC_STAT_WIDTH])  for s in best_cluster]
+    y2s = [int(s[cv2.CC_STAT_TOP])  + int(s[cv2.CC_STAT_HEIGHT]) for s in best_cluster]
+
+    x1 = max(0, min(xs)  - padding)
+    y1 = max(0, min(ys)  - padding)
     x2 = min(w, max(x2s) + padding)
     y2 = min(h, max(y2s) + padding)
 
