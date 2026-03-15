@@ -1,0 +1,80 @@
+# Default configuration for the AutoTRandHD pipeline.
+#
+# Every pipeline stage reads from this file unless overridden on the
+# command line.  Values documented here represent deterministic defaults
+# suitable for development; production runs should override via
+# environment-specific YAML overlays.
+
+# ---------------------------------------------------------------------------
+# Data ingestion
+# ---------------------------------------------------------------------------
+data:
+  dpi: 300                    # target DPI for PDF-to-image export
+  image_format: "png"         # output format: png | tiff
+  split_seed: 42              # random seed for reproducible splits
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  split_strategy: "page"      # "page" | "source" — split by page range or by source id
+
+# ---------------------------------------------------------------------------
+# Preprocessing
+# ---------------------------------------------------------------------------
+preprocess:
+  target_height: 64           # line-crop height in pixels (width is variable)
+  denoise_h: 10               # OpenCV fastNlMeansDenoising filter strength
+  clahe_clip_limit: 2.0       # CLAHE contrast limit
+  clahe_tile_grid: [8, 8]     # CLAHE tile grid size
+  deskew_max_angle: 10.0      # maximum skew angle (degrees) to attempt correction
+  min_line_height: 10         # minimum line height (px) to keep a segmented crop
+  min_line_width: 20          # minimum line width  (px) to keep a segmented crop
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+model:
+  cnn_channels: [1, 64, 128, 256, 256, 512, 512, 512]
+  rnn_hidden: 256
+  rnn_layers: 2
+  rnn_bidirectional: true
+  dropout: 0.1
+  img_height: 64              # must match preprocess.target_height
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+training:
+  batch_size: 32
+  num_epochs: 50
+  learning_rate: 3.0e-4
+  weight_decay: 1.0e-5
+  grad_clip: 5.0
+  seed: 42
+  checkpoint_dir: "artifacts/checkpoints"
+  log_interval: 10            # log every N batches
+  val_interval: 1             # validate every N epochs
+
+# ---------------------------------------------------------------------------
+# Decoder
+# ---------------------------------------------------------------------------
+decode:
+  beam_width: 10
+  blank_idx: 0
+  lm_alpha: 0.0               # language-model weight (0 disables)
+  lm_beta: 0.0                # word insertion bonus
+  max_candidates: 10          # maximum n-best hypotheses to store
+
+# ---------------------------------------------------------------------------
+# Postprocessing
+# ---------------------------------------------------------------------------
+postprocess:
+  confidence_threshold: 0.7   # sequences below this trigger LLM review
+  max_llm_calls_per_run: 200  # safety cap on LLM invocations per pipeline run
+  llm_model: "gpt-4o-mini"   # model identifier passed to the LLM client
+
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
+eval:
+  rare_char_min_freq: 5       # characters appearing fewer times are "rare"
+  output_dir: "artifacts/reports"
