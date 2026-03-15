@@ -202,8 +202,8 @@ class TestRunBenchmark:
             split_id="test",
             output_dir=str(tmp_path),
         )
-        csv_files = list(tmp_path.glob("*.json"))
-        assert len(csv_files) == 1
+        report_files = list(tmp_path.glob("*.json"))
+        assert len(report_files) == 1
 
     def test_length_mismatch_raises(self, tmp_path):
         from src.eval.benchmark import run_benchmark
