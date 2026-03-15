@@ -1,3 +1,38 @@
+import numpy as np
+
+from src.preprocess import deskew
+
+
+def test_large_angle_skipped(monkeypatch):
+    """
+    Ensure that when the estimated skew angle is larger than ``max_angle_deg``,
+    ``deskew_image`` skips correction and returns an angle of 0.0.
+
+    This test monkeypatches ``_estimate_skew`` to return a fixed large angle
+    to avoid flakiness from relying on the real skew estimation logic.
+    """
+
+    # Dummy image; contents are irrelevant because _estimate_skew is patched.
+    img = np.zeros((32, 32), dtype=np.uint8)
+
+    # Always report a large skew angle to trigger the "skip" branch.
+    def fake_estimate_skew(_img):
+        return 10.0  # degrees, well above the threshold used below
+
+    # Patch the internal skew estimator in the deskew module.
+    monkeypatch.setattr(deskew, "_estimate_skew", fake_estimate_skew)
+
+    # Use a very small max_angle_deg so that the large estimated angle
+    # should cause the deskewing logic to skip correction.
+    corrected_img, angle = deskew.deskew_image(img, max_angle_deg=0.05)
+
+    # When skipping, the angle should be reported as 0.0, and no rotation
+    # should be applied to the image.
+    assert angle == 0.0
+    # Depending on implementation, this may or may not be the same object;
+    # we at least ensure the image content is unchanged.
+    assert corrected_img.shape == img.shape
+    assert np.array_equal(corrected_img, img)
 """Unit tests for src.preprocess modules."""
 
 from __future__ import annotations
