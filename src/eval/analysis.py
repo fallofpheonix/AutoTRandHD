@@ -22,7 +22,7 @@ Typical usage::
 from __future__ import annotations
 
 import logging
-from collections import Counter, defaultdict
+from collections import Counter
 from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
