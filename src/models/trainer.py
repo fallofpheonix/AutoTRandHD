@@ -212,8 +212,8 @@ class Trainer:
 
         for batch_idx, batch in enumerate(loader, 1):
             images: Tensor = batch[0].to(self.device)
-            targets: Tensor = batch[1]
-            target_lengths: Tensor = batch[2]
+            targets: Tensor = batch[1].to(self.device, dtype=torch.long)
+            target_lengths: Tensor = batch[2].to(self.device, dtype=torch.long)
 
             self.optimiser.zero_grad()
             log_probs = self.model(images)
@@ -245,8 +245,8 @@ class Trainer:
         with torch.no_grad():
             for batch in loader:
                 images: Tensor = batch[0].to(self.device)
-                targets: Tensor = batch[1]
-                target_lengths: Tensor = batch[2]
+                targets: Tensor = batch[1].to(self.device, dtype=torch.long)
+                target_lengths: Tensor = batch[2].to(self.device, dtype=torch.long)
                 log_probs = self.model(images)
                 loss = self.criterion(log_probs, targets, target_lengths)
                 total_loss += loss.item()
