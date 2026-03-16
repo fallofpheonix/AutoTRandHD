@@ -1,0 +1,38 @@
+name: Production CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ created ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[dev] ruff mypy fastapi uvicorn python-multipart
+
+    - name: Lint with ruff
+      run: ruff check src/ tests/
+
+    - name: Type check with mypy
+      run: mypy src/
+
+    - name: Run tests with pytest
+      run: pytest tests/
+
+    - name: Build Docker image
+      run: docker build -t autotrandhd-test .

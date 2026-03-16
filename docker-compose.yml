@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  autotrandhd-server:
+    build: .
+    container_name: autotrandhd-production
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./artifacts:/app/artifacts
+    environment:
+      - AUTOTRANDHD_MODEL=/app/artifacts/checkpoints/best.pt
+      - AUTOTRANDHD_DEVICE=cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: always
