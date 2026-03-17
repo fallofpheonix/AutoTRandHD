@@ -1,22 +1,23 @@
-import time
-import torch
-import psutil
-import os
-import json
 import argparse
+import json
+import os
+import time
+
 import numpy as np
-from pathlib import Path
-from src.models.loader import load_model
+import psutil
+import torch
+
+from autotrandhd.config import load_settings
+from autotrandhd.core.recognition.loader import load_model
 
 def run_benchmark(checkpoint, num_images=100, batch_size=16, device="cpu"):
     print(f"Benchmarking AutoTRandHD (Device: {device}, Batch Size: {batch_size})")
     
     # Load Model
     start_load = time.time()
-    # Dummy num_classes if checkpoint doesn't exist yet for test runs
     if not os.path.exists(checkpoint):
         print(f"Warning: Checkpoint {checkpoint} not found. Using randomly initialized model.")
-        from src.models.crnn import CRNN
+        from autotrandhd.core.recognition.crnn import CRNN
         model = CRNN(num_classes=100).to(device)
     else:
         model = load_model(checkpoint, device=device)
@@ -30,13 +31,11 @@ def run_benchmark(checkpoint, num_images=100, batch_size=16, device="cpu"):
     
     process = psutil.Process(os.getpid())
     
-    # Warmup
     dummy_input = torch.rand(batch_size, 1, 64, 256).to(device)
     for _ in range(5):
         with torch.no_grad():
             _ = model(dummy_input)
             
-    # Main loop
     total_start = time.time()
     for _ in range(num_images // batch_size):
         batch_input = torch.rand(batch_size, 1, 64, 256).to(device)
@@ -62,11 +61,12 @@ def run_benchmark(checkpoint, num_images=100, batch_size=16, device="cpu"):
     return report
 
 if __name__ == "__main__":
+    settings = load_settings()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--checkpoint", type=str, default="artifacts/checkpoints/best.pt")
+    parser.add_argument("--checkpoint", type=str, default=str(settings.model_path))
     parser.add_argument("--images", type=int, default=100)
-    parser.add_argument("--batch", type=int, default=16)
-    parser.add_argument("--device", type=str, default="cpu")
+    parser.add_argument("--batch", type=int, default=settings.benchmark_batch_size)
+    parser.add_argument("--device", type=str, default=settings.device)
     args = parser.parse_args()
     
     run_benchmark(args.checkpoint, args.images, args.batch, args.device)
