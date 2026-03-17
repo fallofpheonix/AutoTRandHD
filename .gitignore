@@ -62,6 +62,8 @@ artifacts/*.jpg
 artifacts/*.jpeg
 artifacts/*.tiff
 artifacts/*.pdf
+artifacts/runtime/
+submission/
 
 # Logs
 *.log

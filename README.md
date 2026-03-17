@@ -1,86 +1,39 @@
 # AutoTRandHD
 
-Historical OCR and transcription system for seventeenth-century Spanish printed sources.
+AutoTRandHD is an OCR pipeline for seventeenth-century Spanish printed material. It handles page cleanup, text-region extraction, line segmentation, CRNN inference, and decoding behind a small CLI and FastAPI surface.
 
-This repository is documentation-first. The Markdown files listed below are the canonical specification for future implementation.
-
-## Canonical Documents
-
-- [README.md](README.md): repository entry point and document index
-- [CONTRIBUTING.md](CONTRIBUTING.md): development workflow, review policy, and contribution rules
-- [docs/PROJECT_SCOPE.md](docs/PROJECT_SCOPE.md): scope, constraints, goals, non-goals, acceptance criteria
-- [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md): data flow, module boundaries, interfaces, and invariants
-- [docs/DATASET_AND_EVALUATION.md](docs/DATASET_AND_EVALUATION.md): dataset assumptions, preprocessing contract, metrics, and benchmark policy
-- [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md): phased delivery plan and 12-week execution schedule
-
-## Project Definition
-
-AutoTRandHD targets OCR for early modern Spanish print where generic OCR fails due to:
-
-- degraded scans
-- non-standard glyphs and ligatures
-- historical spelling variation
-- decorative layouts and marginal noise
-
-The planned system combines:
-
-- deterministic PDF and image preprocessing
-- main-text extraction and line segmentation
-- weighted CNN-RNN text recognition with CTC training
-- lexicon-constrained beam search decoding
-- selective late-stage LLM correction for low-confidence outputs
-
-## Repository Status
-
-Current state:
-
-- documentation baseline defined
-- implementation **production ready** (verified by 12-phase audit)
-- repository structure fully implemented and tested
-
-Planned source tree:
+## Layout
 
 ```text
-src/
-  data/
-  preprocess/
-  models/
-  decode/
-  postprocess/
-  eval/
-tests/
-configs/
-notebooks/
+src/autotrandhd/
+  api/         FastAPI application and request schemas
+  config/      environment-driven runtime settings
+  core/        OCR domain primitives: preprocessing, recognition, decoding
+  services/    orchestration layer for model loading and inference
+  utils/       small runtime and image helpers
+api/           thin server wrapper
+cli/           thin CLI wrapper
+tests/         critical-path tests
 ```
 
-## Development Priorities
+## Run
 
-1. Build deterministic data ingestion and segmentation.
-2. Establish CRNN baseline with reproducible CER/WER reporting.
-3. Add weighted training for rare glyphs and diacritics.
-4. Add constrained beam search with historical lexicon support.
-5. Integrate confidence-gated LLM correction.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+autotrandhd-cli info
+python api/server.py
+pytest -q
+```
 
-## Technology Baseline
+## Key Decisions
 
-- Python 3.10+
-- PyTorch
-- OpenCV
-- Pillow
-- NumPy
-- pandas
-- jiwer
-- PyMuPDF or pdf2image
-- optional KenLM or equivalent for decoder language priors
+- Core OCR logic stays isolated from transport concerns so the CLI and API share one inference path.
+- Settings come from environment variables first; defaults are good enough for local runs.
+- The API warms the model on startup when a checkpoint is present, but still boots without one for health checks and local integration work.
 
-## Execution Policy
+## Notes
 
-- The documents in this repository are the primary source of truth.
-- Code, configs, experiments, and tests must conform to the architecture and acceptance criteria defined in `docs/`.
-- Any material design change must update the relevant Markdown document before or with the implementation change.
-
-## License
-
-Code: MIT, to be added when source code is introduced.
-
-Dataset usage remains subject to the original source licenses and access restrictions.
+- The benchmark script falls back to a randomly initialized CRNN when no checkpoint is available. That is deliberate so performance plumbing can still be checked on a clean machine.
+- Canonical project docs remain in `docs/` for scope, architecture, and evaluation policy.
