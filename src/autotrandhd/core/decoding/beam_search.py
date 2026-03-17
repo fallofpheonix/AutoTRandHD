@@ -10,8 +10,8 @@ Hannun et al. (2014).  It is intentionally kept simple and readable.
 Typical usage::
 
     import numpy as np
-    from src.decode.beam_search import beam_decode
-    from src.decode.lexicon import Lexicon
+    from autotrandhd.core.decoding.beam_search import beam_decode
+    from autotrandhd.core.decoding.lexicon import Lexicon
 
     logits = np.load("artifacts/logits/line_logits.npy")  # (T, C)
     lexicon = Lexicon.from_file("configs/lexicon.txt", vocab=vocab_str)

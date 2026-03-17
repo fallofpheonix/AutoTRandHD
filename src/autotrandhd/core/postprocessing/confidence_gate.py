@@ -5,8 +5,8 @@ optional LLM correction.  Only flagged lines incur an LLM API call.
 
 Typical usage::
 
-    from src.decode.confidence import sequence_confidence, token_confidence
-    from src.postprocess.confidence_gate import filter_low_confidence
+    from autotrandhd.core.decoding.confidence import sequence_confidence, token_confidence
+    from autotrandhd.core.postprocessing.confidence_gate import filter_low_confidence
 
     decoder_outputs = [...]   # list of decoder result dicts
     flagged, accepted = filter_low_confidence(

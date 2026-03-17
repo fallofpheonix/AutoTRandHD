@@ -15,8 +15,8 @@ to decide whether to invoke the LLM correction step.
 Typical usage::
 
     import numpy as np
-    from src.decode.confidence import token_confidence, sequence_confidence
-    from src.decode.greedy_decoder import greedy_decode
+    from autotrandhd.core.decoding.confidence import token_confidence, sequence_confidence
+    from autotrandhd.core.decoding.greedy_decoder import greedy_decode
 
     logits = np.load("line_logits.npy")   # (T, C)
     result = greedy_decode(logits, vocab)

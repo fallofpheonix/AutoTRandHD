@@ -9,7 +9,7 @@ without running the model again.
 Typical usage::
 
     import numpy as np
-    from src.decode.greedy_decoder import greedy_decode
+    from autotrandhd.core.decoding.greedy_decoder import greedy_decode
 
     logits = np.load("artifacts/logits/source_001_p0000_l0000_logits.npy")
     # logits: (T, C) — log-probabilities

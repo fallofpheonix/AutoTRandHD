@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.data.manifest import (
+from autotrandhd.core.data.manifest import (
     REQUIRED_COLUMNS,
     build_manifest,
     build_line_metadata,
@@ -16,7 +16,7 @@ from src.data.manifest import (
     merge_manifests,
     save_manifest,
 )
-from src.data.splits import generate_splits
+from autotrandhd.core.data.splits import generate_splits
 
 
 # ---------------------------------------------------------------------------

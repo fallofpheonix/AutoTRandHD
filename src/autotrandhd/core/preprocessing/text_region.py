@@ -25,7 +25,7 @@ Algorithm (heuristic, deterministic)
 
 Typical usage::
 
-    from src.preprocess.text_region import extract_text_region
+    from autotrandhd.core.preprocessing.text_region import extract_text_region
     import cv2
 
     gray = cv2.imread("page.png", cv2.IMREAD_GRAYSCALE)

@@ -6,9 +6,9 @@ vocabulary management remain external to keep this module composable.
 
 Typical usage::
 
-    from src.models.trainer import Trainer
-    from src.models.crnn import CRNN
-    from src.models.ctc_loss import CTCLossWrapper
+    from autotrandhd.core.recognition.trainer import Trainer
+    from autotrandhd.core.recognition.crnn import CRNN
+    from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
 
     model = CRNN(num_classes=97)
     criterion = CTCLossWrapper()

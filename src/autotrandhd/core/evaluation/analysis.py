@@ -10,7 +10,7 @@ done at the character level using the standard edit distance algorithm.
 
 Typical usage::
 
-    from src.eval.analysis import rare_char_metrics, top_confusions
+    from autotrandhd.core.evaluation.analysis import rare_char_metrics, top_confusions
 
     preds = ["eñ la çibdad", "El rey don Felipe"]
     refs  = ["en la çibdad",  "El Rey Don Felipe"]

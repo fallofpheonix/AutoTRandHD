@@ -12,7 +12,7 @@ re-running the model.
 
 Typical usage::
 
-    from src.models.inference import transcribe
+    from autotrandhd.core.recognition.inference import transcribe
 
     results = transcribe(
         image_paths=["artifacts/line_crops/source_001_p0000_l0000.png"],

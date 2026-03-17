@@ -14,7 +14,7 @@ Every correction call produces an audit entry (see
 
 Typical usage::
 
-    from src.postprocess.llm_correction import request_correction, MockLLMClient
+    from autotrandhd.core.postprocessing.llm_correction import request_correction, MockLLMClient
 
     client = MockLLMClient()
     audit_entry = request_correction(

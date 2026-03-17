@@ -13,7 +13,7 @@ it defaults to 1.0.
 
 Typical usage::
 
-    from src.decode.lexicon import Lexicon
+    from autotrandhd.core.decoding.lexicon import Lexicon
 
     lexicon = Lexicon.from_file("configs/lexicon.txt", vocab="abcdefghijklmnopqrstuvwxyz ...")
     print(lexicon.contains("dios"))      # True

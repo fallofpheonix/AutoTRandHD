@@ -14,7 +14,7 @@ Algorithm
 
 Typical usage::
 
-    from src.preprocess.line_segment import segment_lines
+    from autotrandhd.core.preprocessing.line_segment import segment_lines
 
     line_records = segment_lines(
         image=text_region_gray,

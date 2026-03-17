@@ -14,7 +14,7 @@ the same inputs.
 
 Typical usage::
 
-    from src.eval.benchmark import run_benchmark
+    from autotrandhd.core.evaluation.benchmark import run_benchmark
 
     report = run_benchmark(
         predictions=preds,

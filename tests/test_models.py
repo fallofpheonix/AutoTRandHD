@@ -21,7 +21,7 @@ import torch
 
 class TestCRNN:
     def _make_model(self, num_classes: int = 20) -> "torch.nn.Module":
-        from src.models.crnn import CRNN
+        from autotrandhd.core.recognition.crnn import CRNN
 
         # img_height=32 needs 5 halving operations → 5 stages → 6 channel values.
         return CRNN(
@@ -58,7 +58,7 @@ class TestCRNN:
         assert (logits <= 0).all()
 
     def test_invalid_cnn_channels_raises(self):
-        from src.models.crnn import CRNN
+        from autotrandhd.core.recognition.crnn import CRNN
 
         with pytest.raises(ValueError, match=r"cnn_channels\[0\]"):
             CRNN(num_classes=10, cnn_channels=[3, 64])
@@ -70,7 +70,7 @@ class TestCRNN:
 
 class TestCTCLossWrapper:
     def test_loss_is_scalar(self):
-        from src.models.ctc_loss import CTCLossWrapper
+        from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
 
         criterion = CTCLossWrapper(blank=0)
         T, B, C = 10, 2, 15
@@ -81,7 +81,7 @@ class TestCTCLossWrapper:
         assert loss.shape == ()
 
     def test_loss_non_negative(self):
-        from src.models.ctc_loss import CTCLossWrapper
+        from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
 
         criterion = CTCLossWrapper(blank=0)
         T, B, C = 10, 2, 15
@@ -110,9 +110,9 @@ class TestTrainer:
         return DataLoader(dataset, batch_size=B)
 
     def test_fit_one_epoch(self, tmp_path):
-        from src.models.crnn import CRNN
-        from src.models.ctc_loss import CTCLossWrapper
-        from src.models.trainer import Trainer
+        from autotrandhd.core.recognition.crnn import CRNN
+        from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
+        from autotrandhd.core.recognition.trainer import Trainer
 
         model = CRNN(num_classes=15, img_height=32, cnn_channels=[1, 8, 16, 16, 16, 16], rnn_hidden=32, rnn_layers=1)
         criterion = CTCLossWrapper(blank=0)
@@ -131,9 +131,9 @@ class TestTrainer:
         assert len(summary["train_losses"]) == 1
 
     def test_checkpoint_saved(self, tmp_path):
-        from src.models.crnn import CRNN
-        from src.models.ctc_loss import CTCLossWrapper
-        from src.models.trainer import Trainer
+        from autotrandhd.core.recognition.crnn import CRNN
+        from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
+        from autotrandhd.core.recognition.trainer import Trainer
 
         model = CRNN(num_classes=15, img_height=32, cnn_channels=[1, 8, 16, 16, 16, 16], rnn_hidden=32, rnn_layers=1)
         criterion = CTCLossWrapper(blank=0)
@@ -146,9 +146,9 @@ class TestTrainer:
         assert len(ckpts) == 1
 
     def test_load_checkpoint(self, tmp_path):
-        from src.models.crnn import CRNN
-        from src.models.ctc_loss import CTCLossWrapper
-        from src.models.trainer import Trainer
+        from autotrandhd.core.recognition.crnn import CRNN
+        from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
+        from autotrandhd.core.recognition.trainer import Trainer
 
         model = CRNN(num_classes=15, img_height=32, cnn_channels=[1, 8, 16, 16, 16, 16], rnn_hidden=32, rnn_layers=1)
         criterion = CTCLossWrapper(blank=0)
@@ -168,7 +168,7 @@ class TestTrainer:
 
 class TestInference:
     def _save_dummy_checkpoint(self, tmp_path: Path, num_classes: int = 15) -> Path:
-        from src.models.crnn import CRNN
+        from autotrandhd.core.recognition.crnn import CRNN
 
         model = CRNN(num_classes=num_classes, img_height=32, cnn_channels=[1, 8, 16, 16, 16, 16], rnn_hidden=32, rnn_layers=1)
         ckpt_path = tmp_path / "dummy.pt"
@@ -186,7 +186,7 @@ class TestInference:
         return img_path
 
     def test_transcribe_returns_records(self, tmp_path):
-        from src.models.inference import transcribe
+        from autotrandhd.core.recognition.inference import transcribe
 
         ckpt = self._save_dummy_checkpoint(tmp_path)
         img = self._save_dummy_image(tmp_path)
@@ -203,7 +203,7 @@ class TestInference:
         assert "image_path" in results[0]
 
     def test_transcribe_saves_logits(self, tmp_path):
-        from src.models.inference import transcribe
+        from autotrandhd.core.recognition.inference import transcribe
 
         ckpt = self._save_dummy_checkpoint(tmp_path)
         img = self._save_dummy_image(tmp_path)

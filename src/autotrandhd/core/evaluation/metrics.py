@@ -6,7 +6,7 @@ to avoid reinventing normalisation logic.
 
 Typical usage::
 
-    from src.eval.metrics import compute_cer, compute_wer, compute_exact_match
+    from autotrandhd.core.evaluation.metrics import compute_cer, compute_wer, compute_exact_match
 
     predictions = ["eñ la çibdad", "El rey don Felipe"]
     references  = ["en la çibdad",  "El Rey Don Felipe"]

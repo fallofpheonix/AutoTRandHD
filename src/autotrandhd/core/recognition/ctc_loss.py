@@ -7,7 +7,7 @@ target tensor, reducing boilerplate in the training loop.
 
 Typical usage::
 
-    from src.models.ctc_loss import CTCLossWrapper
+    from autotrandhd.core.recognition.ctc_loss import CTCLossWrapper
 
     criterion = CTCLossWrapper(blank=0, reduction="mean")
     # log_probs: (T, B, C) — output of CRNN.forward()

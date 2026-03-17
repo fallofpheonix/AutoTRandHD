@@ -2,7 +2,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 from pathlib import Path
-from src.models.crnn import CRNN
+from autotrandhd.core.recognition.crnn import CRNN
 import logging
 
 logger = logging.getLogger(__name__)

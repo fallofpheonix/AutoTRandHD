@@ -5,7 +5,7 @@ The loader never mutates the source PDF.
 
 Typical usage::
 
-    from src.data.pdf_loader import export_pages
+    from autotrandhd.core.data.pdf_loader import export_pages
 
     image_paths = export_pages(
         pdf_path="data/raw/source_001.pdf",

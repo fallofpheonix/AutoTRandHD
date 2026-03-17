@@ -18,7 +18,7 @@ Every call returns an updated audit entry with ``decision="accepted"`` or
 
 Typical usage::
 
-    from src.postprocess.validator import validate_correction
+    from autotrandhd.core.postprocessing.validator import validate_correction
 
     audit_entry = validate_correction(
         audit_entry=audit_entry,
@@ -32,7 +32,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from src.decode.lexicon import Lexicon
+from autotrandhd.core.decoding.lexicon import Lexicon
 
 logger = logging.getLogger(__name__)
 

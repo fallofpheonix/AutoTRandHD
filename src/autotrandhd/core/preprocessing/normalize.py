@@ -14,7 +14,7 @@ The raw input file is never modified.
 Typical usage::
 
     import cv2
-    from src.preprocess.normalize import normalize_page
+    from autotrandhd.core.preprocessing.normalize import normalize_page
 
     img = cv2.imread("artifacts/pages/source_001_p0000.png")
     gray = normalize_page(img)

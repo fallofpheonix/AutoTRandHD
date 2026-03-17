@@ -14,7 +14,7 @@ Minimum required columns (per docs/SYSTEM_ARCHITECTURE.md):
 
 Typical usage::
 
-    from src.data.manifest import build_manifest, load_manifest, save_manifest
+    from autotrandhd.core.data.manifest import build_manifest, load_manifest, save_manifest
 
     manifest = build_manifest(
         source_id="source_001",

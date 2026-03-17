@@ -15,7 +15,7 @@ Two strategies are supported (see ``docs/DATASET_AND_EVALUATION.md``):
 
 Typical usage::
 
-    from src.data.splits import generate_splits
+    from autotrandhd.core.data.splits import generate_splits
 
     manifest = generate_splits(
         manifest=manifest,

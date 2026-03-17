@@ -16,7 +16,7 @@ result, the output image dimensions may differ from the input.
 
 Typical usage::
 
-    from src.preprocess.deskew import deskew_image
+    from autotrandhd.core.preprocessing.deskew import deskew_image
     import cv2
 
     gray = cv2.imread("page.png", cv2.IMREAD_GRAYSCALE)

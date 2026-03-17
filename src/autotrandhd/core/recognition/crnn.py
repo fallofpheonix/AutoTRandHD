@@ -17,7 +17,7 @@ decoding.  ``blank_idx = 0`` by convention.
 
 Typical usage::
 
-    from src.models.crnn import CRNN
+    from autotrandhd.core.recognition.crnn import CRNN
 
     model = CRNN(num_classes=97, img_height=64)
     # x: (B, 1, H, W)
